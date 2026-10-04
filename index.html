@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Event QR Gate Verifier & Entry Manager</title>
+  <title>Event Gate Pass Verifier</title>
   
   <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,9 +21,8 @@
 </head>
 <body>
 
-  <!-- App Wrapper -->
-  <div class="app-container">
-
+  <!-- PAGE VIEW 1: MAIN SCANNER PAGE -->
+  <div class="page-container active" id="pageScanner">
     <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="brand-info">
@@ -32,7 +31,7 @@
         </div>
         <div>
           <h1 class="brand-title">Gate Pass Verifier</h1>
-          <span class="brand-subtitle"><i class="fa-solid fa-bolt text-accent"></i> Vercel Entry System</span>
+          <span class="brand-subtitle"><i class="fa-solid fa-bolt text-accent"></i> Vercel Scanner Engine</span>
         </div>
       </div>
 
@@ -48,246 +47,240 @@
       </div>
     </header>
 
-    <!-- Admin Options Drawer / Dropdown Menu -->
-    <div class="admin-drawer-backdrop" id="adminDrawerBackdrop">
-      <div class="admin-drawer" id="adminDrawer">
-        <div class="drawer-header">
-          <h3><i class="fa-solid fa-sliders"></i> Admin Controls</h3>
-          <button class="drawer-close-btn" id="btnCloseAdminDrawer">&times;</button>
-        </div>
-        
-        <div class="drawer-menu-list">
-          <!-- Action 1: Light / Dark Mode Toggle -->
-          <button class="drawer-item" id="btnToggleTheme">
-            <div class="drawer-item-icon"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
-            <div class="drawer-item-text">
-              <span class="title">Theme Mode</span>
-              <span class="subtitle" id="themeLabelText">Dark Mode Active</span>
-            </div>
-            <div class="toggle-switch">
-              <span class="toggle-dot" id="toggleDot"></span>
-            </div>
-          </button>
-
-          <!-- Action 2: Export Log Activity -->
-          <button class="drawer-item" id="btnExportLog">
-            <div class="drawer-item-icon green-icon"><i class="fa-solid fa-file-csv"></i></div>
-            <div class="drawer-item-text">
-              <span class="title">Export Log Activity</span>
-              <span class="subtitle">Download CSV arrival report</span>
-            </div>
-            <i class="fa-solid fa-download arrow-icon"></i>
-          </button>
-
-          <!-- Action 3: Reset Activity Data (With Auto Data Backup) -->
-          <button class="drawer-item danger-item" id="btnResetActivity">
-            <div class="drawer-item-icon red-icon"><i class="fa-solid fa-rotate"></i></div>
-            <div class="drawer-item-text">
-              <span class="title">Reset Activity Data</span>
-              <span class="subtitle">Auto-downloads final CSV before fresh start</span>
-            </div>
-            <i class="fa-solid fa-shield-halved arrow-icon"></i>
-          </button>
+    <!-- Main Scanner Viewport Container -->
+    <main class="scanner-main-content">
+      <div class="scanner-card">
+        <div class="scanner-header">
+          <h2><i class="fa-solid fa-camera"></i> Scan Gate Ticket QR</h2>
+          <div class="camera-status" id="cameraStatus">
+            <span class="status-dot green"></span> Camera Active
+          </div>
         </div>
 
-        <div class="drawer-footer">
-          <span>Gate Scanner Engine v2.0 • Zero Data Loss Protected</span>
+        <!-- QR Camera Viewport -->
+        <div class="scanner-viewport-wrapper">
+          <div id="reader" class="scanner-reader"></div>
+          
+          <!-- Scanning Laser Reticle -->
+          <div class="scanner-overlay">
+            <div class="laser-line"></div>
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+            <p class="scan-instruction">Align Ticket QR Code inside frame</p>
+          </div>
+        </div>
+
+        <!-- Scanner Controls -->
+        <div class="scanner-controls">
+          <button class="btn btn-secondary" id="btnToggleCamera">
+            <i class="fa-solid fa-camera-rotate"></i> Switch Cam
+          </button>
+          <label class="btn btn-secondary file-upload-btn">
+            <i class="fa-solid fa-image"></i> Scan Image
+            <input type="file" id="qrFileInput" accept="image/*" class="file-input-hidden">
+          </label>
+        </div>
+
+        <!-- Manual Lookup -->
+        <div class="manual-input-box">
+          <span class="manual-label">Manual Ref ID Entry:</span>
+          <div class="input-group">
+            <i class="fa-solid fa-magnifying-glass input-icon"></i>
+            <input type="text" id="manualRefInput" placeholder="e.g. SUB-1001 or LDVI1" autocomplete="off">
+            <button class="btn btn-primary" id="btnManualSubmit">Submit</button>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- MAIN VIEW CONTAINER (Single Page Router Architecture) -->
-    <main class="main-viewport">
-
-      <!-- VIEW 1: LIVE SCANNER PAGE -->
-      <section class="page-view active" id="viewScanner">
-        <div class="scanner-card">
-          <div class="scanner-header">
-            <h2><i class="fa-solid fa-camera"></i> Scan Gate Ticket QR</h2>
-            <div class="camera-status" id="cameraStatus">
-              <span class="status-dot green"></span> Camera Active
-            </div>
-          </div>
-
-          <!-- QR Camera Viewport -->
-          <div class="scanner-viewport-wrapper">
-            <div id="reader" class="scanner-reader"></div>
-            
-            <!-- Scanning Laser Reticle -->
-            <div class="scanner-overlay">
-              <div class="laser-line"></div>
-              <div class="corner top-left"></div>
-              <div class="corner top-right"></div>
-              <div class="corner bottom-left"></div>
-              <div class="corner bottom-right"></div>
-              <p class="scan-instruction">Align Ticket QR Code inside frame</p>
-            </div>
-          </div>
-
-          <!-- Scanner Controls -->
-          <div class="scanner-controls">
-            <button class="btn btn-secondary" id="btnToggleCamera">
-              <i class="fa-solid fa-camera-rotate"></i> Switch Cam
-            </button>
-            <label class="btn btn-secondary file-upload-btn">
-              <i class="fa-solid fa-image"></i> Scan Image
-              <input type="file" id="qrFileInput" accept="image/*" class="file-input-hidden">
-            </label>
-          </div>
-
-          <!-- Manual Lookup -->
-          <div class="manual-input-box">
-            <span class="manual-label">Manual Ref ID Entry:</span>
-            <div class="input-group">
-              <i class="fa-solid fa-magnifying-glass input-icon"></i>
-              <input type="text" id="manualRefInput" placeholder="e.g. SUB-1001 or LDVI1" autocomplete="off">
-              <button class="btn btn-primary" id="btnManualSubmit">Submit</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- VIEW 2: VERIFIED FULL GREEN PAGE -->
-      <section class="page-view full-page-status status-verified" id="viewVerified">
-        <div class="status-card-full">
-          <div class="status-header-icon">
-            <div class="green-tick-circle">
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
-          </div>
-          
-          <h1 class="status-main-title">QR VERIFIED!</h1>
-          <p class="status-sub-title">ENTRY GRANTED • VALID TICKET PASS</p>
-
-          <div class="ticket-details-card">
-            <div class="detail-row">
-              <span class="lbl">Ref / Submission ID</span>
-              <span class="val highlight-green" id="vRefId">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Attendee Name</span>
-              <span class="val" id="vName">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Respondent ID</span>
-              <span class="val" id="vRespondentId">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Number of Passes</span>
-              <span class="val pass-pill-green" id="vPasses">-- Pass(es)</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Check-In Timestamp</span>
-              <span class="val" id="vTime">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">UTR Payment Ref</span>
-              <span class="val" id="vUtr">--</span>
-            </div>
-          </div>
-
-          <div class="action-footer">
-            <button class="btn btn-action-white btn-block-lg btnScanNext">
-              <i class="fa-solid fa-camera"></i> Scan Next Ticket
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- VIEW 3: ALREADY SCANNED FULL GRAY PAGE -->
-      <section class="page-view full-page-status status-duplicate" id="viewDuplicate">
-        <div class="status-card-full">
-          <div class="status-header-icon">
-            <div class="gray-warning-circle">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-          </div>
-          
-          <h1 class="status-main-title">QR ALREADY SCANNED</h1>
-          <p class="status-sub-title">ENTRY REJECTED • TICKET PREVIOUSLY USED</p>
-
-          <div class="already-scanned-alert">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <div>
-              <strong>First Checked-In On:</strong>
-              <div class="duplicate-time-text" id="dFirstScannedAt">--</div>
-            </div>
-          </div>
-
-          <div class="ticket-details-card gray-card">
-            <div class="detail-row">
-              <span class="lbl">Ref / Submission ID</span>
-              <span class="val highlight-gray" id="dRefId">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Attendee Name</span>
-              <span class="val" id="dName">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Respondent ID</span>
-              <span class="val" id="dRespondentId">--</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Total Scan Attempts</span>
-              <span class="val pass-pill-red" id="dScanCount">-- Scan(s)</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">Number of Passes</span>
-              <span class="val" id="dPasses">-- Pass(es)</span>
-            </div>
-            <div class="detail-row">
-              <span class="lbl">UTR Payment Ref</span>
-              <span class="val" id="dUtr">--</span>
-            </div>
-          </div>
-
-          <div class="action-footer">
-            <button class="btn btn-action-white btn-block-lg btnScanNext">
-              <i class="fa-solid fa-camera"></i> Scan Next Ticket
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- VIEW 4: FULL RED PAGE FOR INVALID QR (NO REF ID / UNRECOGNIZED) -->
-      <section class="page-view full-page-status status-invalid" id="viewInvalid">
-        <div class="status-card-full">
-          <div class="status-header-icon">
-            <div class="red-xmark-circle">
-              <i class="fa-solid fa-circle-xmark"></i>
-            </div>
-          </div>
-          
-          <h1 class="status-main-title">INVALID QR CODE!</h1>
-          <p class="status-sub-title">ENTRY REJECTED • NO REF ID FOUND</p>
-
-          <div class="ticket-details-card red-card">
-            <div class="detail-row">
-              <span class="lbl">Status Reason</span>
-              <span class="val highlight-red">No Valid Ref ID Extracted</span>
-            </div>
-            <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
-              <span class="lbl">Scanned Payload Content</span>
-              <div class="raw-payload-box" id="iRawContent">--</div>
-            </div>
-          </div>
-
-          <div class="action-footer">
-            <button class="btn btn-action-white btn-block-lg btnScanNext">
-              <i class="fa-solid fa-camera"></i> Scan Next Ticket
-            </button>
-          </div>
-        </div>
-      </section>
-
     </main>
+  </div>
 
-    <!-- HIDDEN BACKGROUND LINEAR NOTES STORAGE -->
-    <div class="hidden-notes-container" aria-hidden="true" style="display: none;">
-      <textarea id="hiddenLinearIds" class="hidden-notes" readonly></textarea>
-      <textarea id="hiddenLinearTimestamps" class="hidden-notes" readonly></textarea>
+  <!-- PAGE VIEW 2: FULL-SCREEN VERIFIED PAGE (GREEN) -->
+  <div class="page-container page-status-screen screen-verified" id="pageVerified">
+    <div class="status-content-wrapper">
+      <div class="status-icon-box">
+        <div class="green-tick-circle">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+      
+      <h1 class="status-main-title">QR VERIFIED!</h1>
+      <p class="status-sub-title">ENTRY GRANTED • VALID TICKET PASS</p>
+
+      <div class="ticket-details-card green-card">
+        <div class="detail-row">
+          <span class="lbl">Ref / Submission ID</span>
+          <span class="val highlight-green" id="vRefId">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Attendee Name</span>
+          <span class="val" id="vName">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Respondent ID</span>
+          <span class="val" id="vRespondentId">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Number of Passes</span>
+          <span class="val pass-pill-green" id="vPasses">-- Pass(es)</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Check-In Timestamp</span>
+          <span class="val" id="vTime">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">UTR Payment Ref</span>
+          <span class="val" id="vUtr">--</span>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn btn-action-white btn-block-lg btnScanNext">
+          <i class="fa-solid fa-camera"></i> Scan Next Ticket
+        </button>
+      </div>
     </div>
+  </div>
 
+  <!-- PAGE VIEW 3: FULL-SCREEN ALREADY SCANNED PAGE (SLATE GRAY) -->
+  <div class="page-container page-status-screen screen-duplicate" id="pageDuplicate">
+    <div class="status-content-wrapper">
+      <div class="status-icon-box">
+        <div class="gray-warning-circle">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+      
+      <h1 class="status-main-title">QR ALREADY SCANNED</h1>
+      <p class="status-sub-title">ENTRY REJECTED • TICKET PREVIOUSLY USED</p>
+
+      <div class="already-scanned-alert">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <div>
+          <strong>First Checked-In On:</strong>
+          <div class="duplicate-time-text" id="dFirstScannedAt">--</div>
+        </div>
+      </div>
+
+      <div class="ticket-details-card gray-card">
+        <div class="detail-row">
+          <span class="lbl">Ref / Submission ID</span>
+          <span class="val highlight-gray" id="dRefId">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Attendee Name</span>
+          <span class="val" id="dName">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Respondent ID</span>
+          <span class="val" id="dRespondentId">--</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Total Scan Attempts</span>
+          <span class="val pass-pill-red" id="dScanCount">-- Scan(s)</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">Number of Passes</span>
+          <span class="val" id="dPasses">-- Pass(es)</span>
+        </div>
+        <div class="detail-row">
+          <span class="lbl">UTR Payment Ref</span>
+          <span class="val" id="dUtr">--</span>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn btn-action-white btn-block-lg btnScanNext">
+          <i class="fa-solid fa-camera"></i> Scan Next Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE VIEW 4: FULL-SCREEN INVALID QR PAGE (VIBRANT RED) -->
+  <div class="page-container page-status-screen screen-invalid" id="pageInvalid">
+    <div class="status-content-wrapper">
+      <div class="status-icon-box">
+        <div class="red-xmark-circle">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+      </div>
+      
+      <h1 class="status-main-title">INVALID QR CODE!</h1>
+      <p class="status-sub-title">ENTRY REJECTED • NO REF ID FOUND</p>
+
+      <div class="ticket-details-card red-card">
+        <div class="detail-row">
+          <span class="lbl">Status Reason</span>
+          <span class="val highlight-red">No Valid Ref ID Extracted</span>
+        </div>
+        <div class="detail-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+          <span class="lbl">Scanned Payload Content</span>
+          <div class="raw-payload-box" id="iRawContent">--</div>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn btn-action-white btn-block-lg btnScanNext">
+          <i class="fa-solid fa-camera"></i> Scan Next Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Options Drawer / Dropdown Menu -->
+  <div class="admin-drawer-backdrop" id="adminDrawerBackdrop">
+    <div class="admin-drawer" id="adminDrawer">
+      <div class="drawer-header">
+        <h3><i class="fa-solid fa-sliders"></i> Admin Controls</h3>
+        <button class="drawer-close-btn" id="btnCloseAdminDrawer">&times;</button>
+      </div>
+      
+      <div class="drawer-menu-list">
+        <!-- Action 1: Light / Dark Mode Toggle -->
+        <button class="drawer-item" id="btnToggleTheme">
+          <div class="drawer-item-icon"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
+          <div class="drawer-item-text">
+            <span class="title">Theme Mode</span>
+            <span class="subtitle" id="themeLabelText">Dark Mode Active</span>
+          </div>
+          <div class="toggle-switch">
+            <span class="toggle-dot" id="toggleDot"></span>
+          </div>
+        </button>
+
+        <!-- Action 2: Export Log Activity -->
+        <button class="drawer-item" id="btnExportLog">
+          <div class="drawer-item-icon green-icon"><i class="fa-solid fa-file-csv"></i></div>
+          <div class="drawer-item-text">
+            <span class="title">Export Log Activity</span>
+            <span class="subtitle">Download CSV arrival report</span>
+          </div>
+          <i class="fa-solid fa-download arrow-icon"></i>
+        </button>
+
+        <!-- Action 3: Reset Activity Data (With Auto Data Backup) -->
+        <button class="drawer-item danger-item" id="btnResetActivity">
+          <div class="drawer-item-icon red-icon"><i class="fa-solid fa-rotate"></i></div>
+          <div class="drawer-item-text">
+            <span class="title">Reset Activity Data</span>
+            <span class="subtitle">Auto-downloads final CSV before fresh start</span>
+          </div>
+          <i class="fa-solid fa-shield-halved arrow-icon"></i>
+        </button>
+      </div>
+
+      <div class="drawer-footer">
+        <span>Gate Scanner Engine v2.0 • Zero Data Loss Protected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIDDEN BACKGROUND LINEAR NOTES STORAGE -->
+  <div class="hidden-notes-container" aria-hidden="true" style="display: none;">
+    <textarea id="hiddenLinearIds" class="hidden-notes" readonly></textarea>
+    <textarea id="hiddenLinearTimestamps" class="hidden-notes" readonly></textarea>
   </div>
 
   <!-- Main Application Script -->
