@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * EVENT QR GATE VERIFIER - APPLICATION SCRIPT (VERCEL COMPATIBLE)
+ * EVENT QR GATE VERIFIER - APPLICATION SCRIPT (FULL-PAGE ROUTING)
  * ============================================================================
  */
 
@@ -23,13 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let camerasList = [];
   let currentCamIndex = 0;
 
-  // --- DOM ELEMENTS ---
-  // Views
-  const views = {
-    scanner: document.getElementById('viewScanner'),
-    verified: document.getElementById('viewVerified'),
-    duplicate: document.getElementById('viewDuplicate'),
-    invalid: document.getElementById('viewInvalid')
+  // --- DOM ELEMENTS (PAGE CONTAINERS) ---
+  const pages = {
+    scanner: document.getElementById('pageScanner'),
+    verified: document.getElementById('pageVerified'),
+    duplicate: document.getElementById('pageDuplicate'),
+    invalid: document.getElementById('pageInvalid')
   };
 
   // Header & Counter
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnExportLog = document.getElementById('btnExportLog');
   const btnResetActivity = document.getElementById('btnResetActivity');
 
-  // Verified View Elements (Green)
+  // Verified View Elements (Green Page)
   const vRefId = document.getElementById('vRefId');
   const vName = document.getElementById('vName');
   const vRespondentId = document.getElementById('vRespondentId');
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const vTime = document.getElementById('vTime');
   const vUtr = document.getElementById('vUtr');
 
-  // Duplicate View Elements (Gray)
+  // Duplicate View Elements (Slate Gray Page)
   const dRefId = document.getElementById('dRefId');
   const dName = document.getElementById('dName');
   const dRespondentId = document.getElementById('dRespondentId');
@@ -62,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const dUtr = document.getElementById('dUtr');
   const dFirstScannedAt = document.getElementById('dFirstScannedAt');
 
-  // Invalid View Elements
+  // Invalid View Elements (Crimson Red Page)
   const iRawContent = document.getElementById('iRawContent');
 
   // Hidden Notes Elements
@@ -85,6 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUIStats();
     startQRScanner();
     attachEventListeners();
+    
+    // Initial Route Check
+    handleHashRouting();
   }
 
   // --- THEME MANAGEMENT ---
@@ -112,19 +114,31 @@ document.addEventListener('DOMContentLoaded', () => {
     setTheme(newTheme);
   }
 
-  // --- SINGLE PAGE VIEW ROUTER ---
-  function showView(viewName) {
-    Object.keys(views).forEach(name => {
-      if (views[name]) {
-        if (name === viewName) {
-          views[name].classList.add('active');
+  // --- HASH-BASED PAGE ROUTING (LOOKS LIKE REAL PAGE REDIRECTS) ---
+  function navigateTo(pageName) {
+    window.location.hash = `#/${pageName}`;
+    renderPage(pageName);
+  }
+
+  function handleHashRouting() {
+    const hash = window.location.hash.replace('#/', '').replace('#', '');
+    const validPages = ['scanner', 'verified', 'duplicate', 'invalid'];
+    const targetPage = validPages.includes(hash) ? hash : 'scanner';
+    renderPage(targetPage);
+  }
+
+  function renderPage(pageName) {
+    Object.keys(pages).forEach(name => {
+      if (pages[name]) {
+        if (name === pageName) {
+          pages[name].classList.add('active');
         } else {
-          views[name].classList.remove('active');
+          pages[name].classList.remove('active');
         }
       }
     });
 
-    if (viewName === 'scanner') {
+    if (pageName === 'scanner') {
       isScanningPaused = false;
     } else {
       isScanningPaused = true;
@@ -215,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     processScannedQrData(decodedText);
   }
 
-  function onScanError(errorMessage) {
+  function onScanError() {
     // Silent ignore continuous frame scan errors
   }
 
@@ -228,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedNow = formatTimestamp(new Date());
 
     if (!refId) {
-      showInvalidView(rawPayload);
+      showInvalidPage(rawPayload);
       return;
     }
 
@@ -237,21 +251,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAlreadyScanned = existingIds.includes(refId);
 
     if (isAlreadyScanned) {
-      // DUPLICATE SCAN ATTEMPT -> REDIRECT TO FULL GRAY PAGE!
+      // DUPLICATE SCAN ATTEMPT -> REDIRECT TO FULL SLATE GRAY PAGE!
       const existingRecord = scanRecords[refId];
       if (existingRecord) {
         existingRecord.scanCount = (existingRecord.scanCount || 1) + 1;
       }
       saveState();
 
-      showDuplicateView({
+      showDuplicatePage({
         ticketData: ticketData,
         firstScannedAt: existingRecord ? existingRecord.firstScannedAt : 'Unknown',
         scanCount: existingRecord ? existingRecord.scanCount : 2
       });
 
     } else {
-      // FIRST TIME VALID SCAN -> REDIRECT TO FULL GREEN PAGE!
+      // FIRST TIME VALID SCAN -> REDIRECT TO FULL LUSH GREEN PAGE!
       linearIdString = linearIdString.trim() ? `${linearIdString.trim()} ${refId}` : refId;
 
       scanRecords[refId] = {
@@ -269,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       saveState();
 
-      showVerifiedView({
+      showVerifiedPage({
         ticketData: ticketData,
         firstScannedAt: formattedNow
       });
@@ -346,8 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return data;
   }
 
-  // --- VIEW DISPLAY CONTROLLERS ---
-  function showVerifiedView(opts) {
+  // --- PAGE DISPLAY CONTROLLERS (SIMULATES REAL PAGE REDIRECT) ---
+  function showVerifiedPage(opts) {
     const { ticketData, firstScannedAt } = opts;
     vRefId.textContent = ticketData.refId || 'N/A';
     vName.textContent = ticketData.name || 'Attendee';
@@ -356,10 +370,10 @@ document.addEventListener('DOMContentLoaded', () => {
     vTime.textContent = firstScannedAt;
     vUtr.textContent = ticketData.utr || 'N/A';
     
-    showView('verified');
+    navigateTo('verified');
   }
 
-  function showDuplicateView(opts) {
+  function showDuplicatePage(opts) {
     const { ticketData, firstScannedAt, scanCount } = opts;
     dRefId.textContent = ticketData.refId || 'N/A';
     dName.textContent = ticketData.name || 'Attendee';
@@ -369,12 +383,12 @@ document.addEventListener('DOMContentLoaded', () => {
     dUtr.textContent = ticketData.utr || 'N/A';
     dFirstScannedAt.textContent = firstScannedAt;
     
-    showView('duplicate');
+    navigateTo('duplicate');
   }
 
-  function showInvalidView(rawPayload) {
+  function showInvalidPage(rawPayload) {
     iRawContent.textContent = rawPayload || "Unreadable QR data";
-    showView('invalid');
+    navigateTo('invalid');
   }
 
   // --- EXPORT & SAFE RESET LOGIC ---
@@ -413,10 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  /**
-   * Reset Activity with SAFE AUTO-BACKUP:
-   * Auto-downloads the complete CSV data first so NO data is ever lost!
-   */
   function safeResetActivity() {
     const recordsArr = Object.values(scanRecords);
 
@@ -439,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHiddenNotesDOM();
         updateUIStats();
         closeAdminDrawer();
-        showView('scanner');
+        navigateTo('scanner');
         alert("✓ Final data backup downloaded!\n✓ Activity log reset complete for fresh session.");
       }, 500);
     }
@@ -448,10 +458,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- EVENT LISTENERS ---
   function attachEventListeners() {
 
-    // Scan Next Ticket Buttons (Return to Scanner View)
+    // Hash change event (Browser Back / Forward button support)
+    window.addEventListener('hashchange', handleHashRouting);
+
+    // Scan Next Ticket Buttons (Returns to Scanner Page)
     btnScanNextList.forEach(btn => {
       btn.addEventListener('click', () => {
-        showView('scanner');
+        navigateTo('scanner');
       });
     });
 
@@ -543,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         processScannedQrData(decodedText);
       })
       .catch(() => {
-        alert("Could not detect a valid QR Code image.");
+        showInvalidPage("Uploaded image does not contain a readable QR code.");
       });
   }
 
